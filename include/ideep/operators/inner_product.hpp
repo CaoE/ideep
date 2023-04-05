@@ -391,12 +391,14 @@ private:
     }
 
     IDEEP_ENFORCE(utils::one_of(weights.get_data_type(),
-                                data_type::f32, data_type::bf16),
+                                data_type::f32, data_type::bf16, data_type::f16),
             "Incorrect data type in weights");
 
     // align weights data type with src
-    dst_data_type = src.get_data_type() == data_type::bf16 ? data_type::bf16
-                                                           : data_type::f32;
+    dst_data_type = src.get_data_type() == data_type::bf16
+        ? data_type::bf16
+        : ((src.get_data_type() == data_type::f16) ? data_type::f16
+                                                   : data_type::f32);
     if (!reorder_weight)  {
       IDEEP_ENFORCE(weights.get_data_type() == src.get_data_type(),
                   "weights' data type should be same with input's data type when reorder_weight is false");
@@ -407,7 +409,7 @@ private:
                                   : weights.get_desc();
     if (with_bias) {
       IDEEP_ENFORCE(utils::one_of(bias.get_data_type(),
-                                  data_type::f32, data_type::bf16),
+                                  data_type::f32, data_type::bf16, data_type::f16),
                     "Incorrect data type in bias");
       bias_desc = reorder_weight ? bias.get_desc().to_format_any()
                                  : bias.get_desc();
@@ -635,8 +637,12 @@ struct inner_product_backward_data : public dnnl::inner_product_backward_data {
                       const attr_t& attr = attr_t(),
                       const engine& aengine = engine::cpu_engine()) {
     auto weights_ = weights;
+    // will be replaced by latest ideep
     if (diff_dst.get_data_type() == data_type::bf16) {
       weights_.init(weights.get_desc().to_type(data_type::bf16));
+      weights_.reorder_from(weights);
+    } else if (diff_dst.get_data_type() == data_type::f16) {
+      weights_.init(weights.get_desc().to_type(data_type::f16));
       weights_.reorder_from(weights);
     }
 

@@ -805,7 +805,8 @@ struct matmul_forward : public dnnl::matmul,
     // untouched thanks to optimizations for both plain and transposed formats
     // in DNNL.
     IDEEP_ENFORCE(weights.get_data_type() == data_type::f32 ||
-                  weights.get_data_type() == data_type::bf16,
+                  weights.get_data_type() == data_type::bf16 ||
+                  weights.get_data_type() == data_type::f16,
                   "Incorrect data type in weights");
     dst_data_type = src.get_data_type() == data_type::bf16 ?
                     data_type::bf16 : data_type::f32;
@@ -813,7 +814,8 @@ struct matmul_forward : public dnnl::matmul,
     weights_desc = weights.get_desc().to_type(dst_data_type);
     if (with_bias) {
       IDEEP_ENFORCE(bias.get_data_type() == data_type::f32 ||
-                    bias.get_data_type() == data_type::bf16,
+                    bias.get_data_type() == data_type::bf16 ||
+                    weights.get_data_type() == data_type::f16,
                     "Incorrect data type in bias");
       bias_desc = bias.get_desc().to_format_any();
       auto bias_scales = scale_t(1, 1.0 / dst_coeff);
