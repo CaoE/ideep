@@ -590,6 +590,10 @@ struct inner_product_backward_data : public dnnl::inner_product_backward_data {
                       tensor& diff_src,
                       const attr_t& attr = attr_t(),
                       const engine& aengine = engine::cpu_engine()) {
+    IDEEP_CHECK(!(check_isa_avx2_vnni_2() &&
+                  utils::one_of(diff_dst.get_data_type(),
+                                data_type::bf16, data_type::f16)),
+                  "DNNL does not support bf16/f16 backward on the platform with avx2_vnni_2");
     auto weights_ = weights;
 
     // workaround: diff_src and weights from caffe2 may have different dims.
@@ -656,6 +660,10 @@ struct inner_product_backward_weights
                       const data_type diff_weight_type = data_type::undef,
                       const attr_t& attr = attr_t(),
                       const engine& aengine = engine::cpu_engine()) {
+    IDEEP_CHECK(!(check_isa_avx2_vnni_2() &&
+                  utils::one_of(diff_dst.get_data_type(),
+                                data_type::bf16, data_type::f16)),
+                  "DNNL does not support bf16/f16 backward on the platform with avx2_vnni_2");
     compute_impl</*with_diff_bias=*/true>(
         src, diff_dst, diff_weights, diff_bias, diff_weight_type, attr);
   }
@@ -666,6 +674,10 @@ struct inner_product_backward_weights
                       const data_type diff_weight_type = data_type::undef,
                       const attr_t& attr = attr_t(),
                       const engine& aengine = engine::cpu_engine()) {
+    IDEEP_CHECK(!(check_isa_avx2_vnni_2() &&
+                  utils::one_of(diff_dst.get_data_type(),
+                                data_type::bf16, data_type::f16)),
+                  "DNNL does not support bf16/f16 backward on the platform with avx2_vnni_2");
     static tensor dummy_diff_bias;
     compute_impl</*with_diff_bias=*/false>(
         src, diff_dst, diff_weights, dummy_diff_bias, diff_weight_type, attr);
@@ -680,6 +692,10 @@ private:
                            const data_type diff_weight_type,
                            const attr_t& attr = attr_t(),
                            const engine& aengine = engine::cpu_engine()) {
+    IDEEP_CHECK(!(check_isa_avx2_vnni_2() &&
+                  utils::one_of(diff_dst.get_data_type(),
+                                data_type::bf16, data_type::f16)),
+                  "DNNL does not support bf16/f16 backward on the platform with avx2_vnni_2");
     auto src_desc = src.get_desc().to_format_any();
     auto diff_dst_desc = diff_dst.get_desc().to_format_any();
     auto diff_weights_dims = src.get_dims();
